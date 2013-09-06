@@ -37,23 +37,27 @@ def getPackageList():
 	return packages
 
 def createLinks(sourceRoot, target):
-	for item in os.listdir(sourceRoot):
-		sourceFile = sourceRoot+s+item
-		targetFile = target+s+item
-		if item in ['pre-install', 'post-install']:
-			continue
-		if args['command'] == 'install':
-			if path.lexists(targetFile) and 'force' in args['options']:
-				run('rm -rf '+targetFile)
-			if not path.lexists(targetFile):
-				if path.isfile(sourceFile):
+	#for item in os.listdir(sourceRoot):
+		# sourceFile = sourceRoot+s+item
+		# targetFile = target+s+item
+	for root, dirs, files in os.walk(sourceRoot, topdown=False):
+		for item in files:
+			sourceFile = root+s+item
+			targetFile = root.replace(sourceRoot, target)+s+item
+			if item in ['pre-install', 'post-install']:
+				continue
+			if args['command'] == 'install':
+				if path.lexists(targetFile) and 'force' in args['options']:
+					run('rm -rf '+targetFile)
+				if not path.lexists(targetFile):
+					targetDir = targetFile[0:targetFile.rfind(s)]
+					if not path.isdir(targetDir):
+						run('mkdir -p '+targetDir)
 					run('ln -s '+sourceFile+' '+targetFile)
-				elif path.isdir(sourceFile):
-					run('ln -s '+sourceFile+' '+targetFile)
-			else:
-				print 'skip',targetFile
-		if args['command'] == 'uninstall':
-			run('rm '+targetFile)
+				else:
+					print 'skip',targetFile
+			if args['command'] == 'uninstall':
+				run('rm '+targetFile)
 
 
 def executeInstallScript(package, script):
@@ -80,8 +84,7 @@ packages = [args['package']] if args['package'] else getPackageList()
 for package in packages:
 	print 'install package',package
 	if args['command'] == 'install':
-		isOk = executeInstallScript(package, 'pre-install')
-		if isOk == False:
+		if executeInstallScript(package, 'pre-install') == False:
 			print 'pre-install script failed'
 			exit(1)
 	createLinks(source+s+package, target)
