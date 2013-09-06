@@ -47,7 +47,9 @@ def createLinks(sourceRoot, target):
 			if item in ['pre-install', 'post-install']:
 				continue
 			if args['command'] == 'install':
-				if path.lexists(targetFile) and 'force' in args['options']:
+				if 'force' in args['options'] and (\
+					(path.islink(targetFile) and os.readlink(targetFile) != sourceFile) or \
+					(not path.islink(targetFile) and path.lexists(targetFile))):
 					run('rm -rf '+targetFile)
 				if not path.lexists(targetFile):
 					targetDir = targetFile[0:targetFile.rfind(s)]
