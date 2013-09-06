@@ -37,17 +37,22 @@ def getPackageList():
 	return packages
 
 def createLinks(source, target):
-	for root, dirs, files in os.walk(source):
-		for file in files:
-			targetFile = target+root[len(source):]+s+file
-			sourceFile = path.abspath(root+s+file)
-			if args['command'] == 'install':
-				if path.lexists(targetFile) and 'force' in args['options']:
-					run('rm '+targetFile)
-				if not path.lexists(targetFile):
-					run('ln -s '+sourceFile+' '+targetFile)
-			if args['command'] == 'uninstall':
+	#for root, dirs, files in os.walk(source):
+	for item in os.listdir(source):
+		#for file in files:
+		targetFile = target+s+item
+		sourceFile = path.abspath(source+s+item)
+		if args['command'] == 'install':
+			if path.lexists(targetFile) and 'force' in args['options']:
 				run('rm '+targetFile)
+			if not path.lexists(targetFile):
+				if path.isfile(sourceFile):
+					run('ln -s '+sourceFile+' '+targetFile)
+				elif path.isdir(sourceFile):
+					run('ln '+sourceFile+' '+targetFile)
+		if args['command'] == 'uninstall':
+			run('rm '+targetFile)
+
 
 def executePostInstallScript(package):
 	script = './'+package+s+'post-install'
