@@ -1,0 +1,14 @@
+#!/bin/bash
+
+base="$HOME/.ssh/"
+failed=0
+[ -L "$HOME/.ssh" ] && exit 0
+
+for file in "${base}id_rsa" "${base}id_rsa.pub" "${base}known_hosts" "${base}authorized_keys"; do
+	if [ -f "$file" ]; then
+		echo "move this file to dotfiles/ssh/.ssh: $file"
+		failed=1
+	fi
+done
+
+[ $failed -eq 1 ] && exit 1 || exit 0
