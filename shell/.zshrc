@@ -30,10 +30,3 @@ zstyle ':completion:*' cache-path ~/.zsh/cache
 zstyle -e ':completion:*:default' list-colors 'reply=("${PREFIX:+=(#bi)($PREFIX:t)*==36=36}:${(s.:.)LS_COLORS}")';
 unsetopt correct_all
 setopt GLOB_COMPLETE
-
-export PATH=/home/pawel/bin:/usr/lib/lightdm/lightdm:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/java/jre1.6.0_31/bin
-export EDITOR=nano
-
-alias go="gnome-open"
-alias sshdev='ssh -t srvdev "cd -P web/content/nokaut; zsh"'
-alias sshkoszyk='ssh -t koszyk-www "cd -P web/koszyk-szkielet; zsh"'
