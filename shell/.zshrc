@@ -1,16 +1,6 @@
-# Path to your oh-my-zsh configuration.
 ZSH=$HOME/.oh-my-zsh
 
-# Set name of the theme to load.
-# Look in ~/.oh-my-zsh/themes/
-# Optionally, if you set this to "random", it'll load a random theme each
-# time that oh-my-zsh is loaded.
-ZSH_THEME="robbyrussell"
-ZSH_THEME="moja"
-
-# Example aliases
-# alias zshconfig="mate ~/.zshrc"
-# alias ohmyzsh="mate ~/.oh-my-zsh"
+ZSH_THEME="eyja"
 
 # Set to this to use case-sensitive completion
 # CASE_SENSITIVE="true"
@@ -33,18 +23,17 @@ ZSH_THEME="moja"
 plugins=(git colored-man)
 
 source $ZSH/oh-my-zsh.sh
-
-# Customize to your needs...
-export PATH=/home/pawel/bin:/usr/lib/lightdm/lightdm:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/java/jre1.6.0_31/bin
-
-
-alias sshdev='ssh -t srvdev "cd -P web/content/nokaut; zsh"'
-alias sshkoszyk='ssh -t koszyk-www "cd -P web/koszyk-szkielet; zsh"'
-export EDITOR=nano
-
+unsetopt correct_all
 zstyle ':completion:*' accept-exact '*(N)'
 zstyle ':completion:*' use-cache on
 zstyle ':completion:*' cache-path ~/.zsh/cache
 zstyle -e ':completion:*:default' list-colors 'reply=("${PREFIX:+=(#bi)($PREFIX:t)*==36=36}:${(s.:.)LS_COLORS}")';
 unsetopt correct_all
 setopt GLOB_COMPLETE
+
+export PATH=/home/pawel/bin:/usr/lib/lightdm/lightdm:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/java/jre1.6.0_31/bin
+export EDITOR=nano
+
+alias go="gnome-open"
+alias sshdev='ssh -t srvdev "cd -P web/content/nokaut; zsh"'
+alias sshkoszyk='ssh -t koszyk-www "cd -P web/koszyk-szkielet; zsh"'
