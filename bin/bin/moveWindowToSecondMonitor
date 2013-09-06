@@ -1,0 +1,36 @@
+#!/bin/bash
+
+# Move current active window to second/first monitor.
+# Requirements: sudo apt-get install xdotool wmctrl
+
+display=( `xdotool getdisplaygeometry` )
+
+windowid=`xdotool getwindowfocus`
+
+windowpos=`xdotool getwindowgeometry $windowid | grep Position | cut -d' ' -f 4 | tr ',' ' '`
+windowpos=( $windowpos )
+
+windowsize=`xdotool getwindowfocus | xargs xdotool getwindowgeometry | grep Geometry | cut -d' ' -f 4 | tr 'x' ' '`
+windowsize=( $windowsize )
+
+if [ ${windowsize[0]} -eq ${display[0]} ]; then
+	fullscreen=1
+else
+	fullscreen=0
+fi
+
+if [ ${windowpos[0]} -lt ${display[0]} ]; then
+	x=1920
+else
+	x=0
+fi
+
+[ $fullscreen -eq 1 ] && \
+	wmctrl -r :ACTIVE: -b remove,maximized_vert && \
+	wmctrl -r :ACTIVE: -b remove,maximized_horz
+
+xdotool windowmove $windowid $x 0
+
+[ $fullscreen -eq 1 ] && \
+	wmctrl -r :ACTIVE: -b add,maximized_vert && \
+	wmctrl -r :ACTIVE: -b add,maximized_horz
