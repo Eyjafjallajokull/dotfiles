@@ -1,0 +1,76 @@
+#!/usr/bin/python
+
+import sys
+import os
+from subprocess import Popen, PIPE
+from os import path
+
+def parseArguments():
+	package = command = None
+	options = {}
+	arguments = list(sys.argv)
+	if len(sys.argv) == 1:
+		print './stow [package] <command>'
+		exit(1)	
+	for arg in sys.argv[1:]:
+		if arg.startswith('--'):
+			nameAndValue = arg[2:].split('=', 1)
+			if len(nameAndValue)==1:
+				nameAndValue.append(True)
+			options[nameAndValue[0]] = nameAndValue[1]
+		elif not package:
+			package = arg
+		elif not command:
+			command = arg
+	return {'package': package,
+			'command': command,
+			'options': options}
+			
+def validateArguments(args):
+	if not args['command'] in ['install', 'uninstall']:
+		print 'invalid command'
+		exit(1)
+
+def getPackageList():
+	root = '.'
+	packages = [ f for f in os.listdir(root) if path.isdir(path.join(root, f)) and f != '.git' ]
+	return packages
+
+def createLinks(source, target):
+	for root, dirs, files in os.walk(source):
+		for file in files:
+			targetFile = target+root[len(source):]+s+file
+			sourceFile = path.abspath(root+s+file)
+			if args['command'] == 'install':
+				if path.lexists(targetFile) and 'force' in args['options']:
+					run('rm '+targetFile)
+				if not path.lexists(targetFile):
+					run('ln -s '+sourceFile+' '+targetFile)
+			if args['command'] == 'uninstall':
+				run('rm '+targetFile)
+
+def executePostInstallScript(package):
+	script = './'+package+s+'post-install'
+	if path.isfile(script):
+		run(script)
+	
+def run(cmd):
+	#print cmd
+	#return
+	print ' '+cmd
+	p = Popen(cmd , shell=True, stdout=PIPE, stderr=PIPE)
+	out, err = p.communicate()
+	print out, err
+	
+
+args = parseArguments()
+print args
+validateArguments(args)
+s = os.sep
+target = path.expandvars('$HOME')
+packages = [args['package']] if args['package'] else getPackageList()
+for package in packages:
+	print 'install package',package
+	createLinks(package, target)
+	if args['command'] == 'install':
+		executePostInstallScript(package)

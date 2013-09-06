@@ -1,0 +1,2 @@
+#!/bin/bash
+cp $1/.oh-my-zsh-theme/* $2/.oh-my-zsh/themes

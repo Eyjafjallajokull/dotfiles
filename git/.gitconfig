@@ -1,0 +1,15 @@
+[user]
+	name = Paweł Olejniczak
+	email = pawel.olejniczak@nokaut.pl
+[color]
+	branch = auto
+	diff = auto
+	interactive = auto
+	status = auto
+[core]
+	excludesfile = /home/pawel/.gitignore_global
+[alias]
+	lg = log --color --graph --pretty=format:'%C(dim normal)%h%Creset%C(yellow)%d%Creset %s %C(dim normal)%cr %an%Creset' --abbrev-commit --
+	wtf = !git-wtf
+	ci = commit
+	st = status

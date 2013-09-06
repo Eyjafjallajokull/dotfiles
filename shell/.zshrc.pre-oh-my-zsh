@@ -1,0 +1,21 @@
+# The following lines were added by compinstall
+
+zstyle ':completion:*' auto-description 'arg: %d'
+zstyle ':completion:*' completer _complete _ignored _approximate
+zstyle ':completion:*' list-colors ${(s.:.)LS_COLORS}
+zstyle ':completion:*' menu select=1
+zstyle ':completion:*' select-prompt %SScrolling active: current selection at %p%s
+zstyle ':completion:*' verbose true
+zstyle :compinstall filename '/home/pawel/.zshrc'
+
+autoload -Uz compinit
+compinit
+# End of lines added by compinstall
+# Lines configured by zsh-newuser-install
+HISTFILE=~/.histfile
+HISTSIZE=1000
+SAVEHIST=1000
+setopt appendhistory autocd
+unsetopt beep
+bindkey -e
+# End of lines configured by zsh-newuser-install
