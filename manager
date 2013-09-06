@@ -36,46 +36,54 @@ def getPackageList():
 	packages = [ f for f in os.listdir(root) if path.isdir(path.join(root, f)) and f != '.git' ]
 	return packages
 
-def createLinks(source, target):
-	#for root, dirs, files in os.walk(source):
-	for item in os.listdir(source):
-		#for file in files:
+def createLinks(sourceRoot, target):
+	for item in os.listdir(sourceRoot):
+		sourceFile = sourceRoot+s+item
 		targetFile = target+s+item
-		sourceFile = path.abspath(source+s+item)
+		if item in ['pre-install', 'post-install']:
+			continue
 		if args['command'] == 'install':
 			if path.lexists(targetFile) and 'force' in args['options']:
-				run('rm '+targetFile)
+				run('rm -rf '+targetFile)
 			if not path.lexists(targetFile):
 				if path.isfile(sourceFile):
 					run('ln -s '+sourceFile+' '+targetFile)
 				elif path.isdir(sourceFile):
-					run('ln '+sourceFile+' '+targetFile)
+					run('ln -s '+sourceFile+' '+targetFile)
+			else:
+				print 'skip',targetFile
 		if args['command'] == 'uninstall':
 			run('rm '+targetFile)
 
 
-def executePostInstallScript(package):
-	script = './'+package+s+'post-install'
+def executeInstallScript(package, script):
+	script = './'+package+s+script
 	if path.isfile(script):
-		run(script)
+		return run(script) == 0
+	return None
 	
 def run(cmd):
-	#print cmd
-	#return
 	print ' '+cmd
 	p = Popen(cmd , shell=True, stdout=PIPE, stderr=PIPE)
 	out, err = p.communicate()
-	print out, err
-	
+	output = out.strip() + err.strip()
+	if output:
+		print output
+	return p.returncode
 
 args = parseArguments()
-print args
 validateArguments(args)
 s = os.sep
+source = path.abspath('./')
 target = path.expandvars('$HOME')
 packages = [args['package']] if args['package'] else getPackageList()
 for package in packages:
 	print 'install package',package
-	createLinks(package, target)
 	if args['command'] == 'install':
-		executePostInstallScript(package)
+		isOk = executeInstallScript(package, 'pre-install')
+		if isOk == False:
+			print 'pre-install script failed'
+			exit(1)
+	createLinks(source+s+package, target)
+	if args['command'] == 'install':
+		executeInstallScript(package, 'post-install')
