@@ -22,6 +22,9 @@ def parseArguments():
 			package = arg
 		elif not command:
 			command = arg
+	if package != None and command == None:
+		command = package
+		package = None
 	return {'package': package,
 			'command': command,
 			'options': options}
@@ -47,20 +50,27 @@ def createLinks(sourceRoot, target):
 			if item in ['pre-install', 'post-install']:
 				continue
 			if args['command'] == 'install':
-				if 'force' in args['options'] and (\
-					(path.islink(targetFile) and os.readlink(targetFile) != sourceFile) or \
-					(not path.islink(targetFile) and path.lexists(targetFile))):
-					run('rm -rf '+targetFile)
+				if path.islink(targetFile):
+					if (os.readlink(targetFile) != sourceFile):				
+						removeFile(targetFile, 'Link exists but is invalid ')
+					else:
+						if 'v' in args['options']:
+							print 'File ok', targetFile
+				elif path.exists(targetFile):
+					removeFile(targetFile, 'File already exists')
 				if not path.lexists(targetFile):
 					targetDir = targetFile[0:targetFile.rfind(s)]
 					if not path.isdir(targetDir):
 						run('mkdir -p '+targetDir)
 					run('ln -s '+sourceFile+' '+targetFile)
-				else:
-					print 'skip',targetFile
 			if args['command'] == 'uninstall':
 				run('rm '+targetFile)
 
+def removeFile(filename, message):
+	if path.exists(filename) and 'force' in args['options']:
+		run('rm -rf '+filename)
+	else:
+		print message, filename
 
 def executeInstallScript(package, script):
 	script = './'+package+s+script
