@@ -1,3 +1,2 @@
 #!/bin/bash
-echo $PWD
 cp "$PWD/shell/.oh-my-zsh-theme/"* "$HOME/.oh-my-zsh/themes"
