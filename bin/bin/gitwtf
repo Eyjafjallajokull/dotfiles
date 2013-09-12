@@ -1,0 +1,117 @@
+#!/bin/bash
+#set -x
+#set -e
+
+# config start
+projectPath="`pwd`/"
+gitSearchPaths=( "${projectPath}.git" "${projectPath}vendor/nokaut/" )
+# config end
+
+colorPath="38;5;256"
+colorPath2="38;5;252;1"
+colorBranch="38;5;3"
+colorInfo="38;5;70"
+colorWarning="38;5;13"
+
+if [ "$1" == "-h" ]; then
+	echo "$0 [option]
+-v		verbose mode
+-c <command>	execute command on every repository
+--branches	list branches
+--lbranches	list local branches
+--switch <branch> switch to branch (if it exists) on every repository
+--update	update all repositories
+"
+	exit 1
+fi
+[ "$1" == "-v" ] && verbose=1 || verbose=0
+[ "$1" == "-c" -a ! -z "$2" ] && command="$2"
+[ "$1" == "-i" ] && inspectRemoteBranches=1 || inspectRemoteBranches=0
+[ "$1" == "--branches" ] && command="git branch -av"
+[ "$1" == "--lbranches" ] && command="git branch -v"
+[ "$1" == "--switch" -a ! -z "$2" ] && command="git show-branch $2 >/dev/null && git checkout $2"
+[ "$1" == "--update" ] && command="git rev-parse --abbrev-ref HEAD | xargs git pull origin"
+
+gitLogFormat="%s %C(dim normal)%h %cr %an%d%C(reset)"
+indent1="sed 's/^/    /'"
+indent2="sed 's/^/      /' | sed '\${/^\$/!s/\$/\n/;}'"
+indent3="sed 's/^/        /'"
+
+git config --get user.name>/dev/null || echo -e "\E[${colorWarning}mSet your user name! git config --global user.name 'Noob'\033[0m"
+
+# gets all git repositories within given path
+function findGitRepositories {
+	unset gitRepositories i
+	while IFS= read -r -u3 -d $'\n' file; do
+	    gitRepositories[i++]="$file"
+	done 3< <(find "$1" -maxdepth 5 -type d -name .git | sort )
+}
+
+function processDetailedData {
+	lines="$1"
+	message="$2"
+	if [ ! -z "$lines" ]; then
+		count="`echo -e "$lines" | wc -l`"
+		echo -e "\E[${colorWarning}m$count $message\033[0m" | eval "$indent1"
+		[ $verbose -eq 1 ] && echo "$lines" | eval "$indent2"
+	fi
+}
+
+function processGitRepository {
+	gitRepository="$1"
+	cd "$gitRepository/.."
+	displayPath="`pwd`/"
+	displayPath="`echo ${displayPath/$projectPath//} | sed \"s/\/\([^\/]*\)\/$/\/\x1b[${colorPath2}m\1/\"`"
+	echo -e "\x1b[${colorPath}m.$displayPath\x1b[0m";
+
+	gitBranchResult="`git branch -a`"
+	branch="`echo "$gitBranchResult" | grep \* | sed 's/* //'`"
+	remoteBranch="remotes/origin/$branch"
+	echo "$gitBranchResult" | egrep "^ *$remoteBranch$">/dev/null && branchIsTracked=1 || branchIsTracked=0
+	echo "$gitBranchResult" | grep " develop">/dev/null && masterBranch="develop" || masterBranch="master"
+
+	if [ ! -z "$command" ]; then
+		eval "$command"  | eval "$indent1"
+		return $?
+	fi
+
+	if [ "$inspectRemoteBranches" -eq 1 ]; then
+		while IFS= read -r -u3 -d $'\n' branch; do
+			echo -e "\E[${colorBranch}m$branch\E[0m"
+		    git log --abbrev-commit --color --pretty=format:"$gitLogFormat" "remotes/origin/$masterBranch".."${branch// /}" | eval "$indent2"
+		done 3< <(git branch -a | grep -v HEAD )
+		return
+	fi
+
+	echo -e "\E[${colorBranch}m$branch\E[0m" | eval "$indent1"
+
+	if [ "$branch" != "(no branch)" ]; then
+		[ $branchIsTracked -eq 0 ] && echo -e "\E[${colorInfo}mNOT tracked\033[0m" | eval "$indent1"
+
+		changes=$(git status -s)
+		processDetailedData "$changes" "not commited change(s)"
+
+		if [ $branchIsTracked -eq 1 ]; then
+			commits=$(git log --abbrev-commit --color --pretty=format:"$gitLogFormat" --branches --not --remotes --decorate | grep "`git config --get user.name`")
+			processDetailedData "$commits" "not pushed commit(s)"
+		fi
+
+		if [ "$branch" != "master" ]; then
+			commits=$(git log --abbrev-commit --color --pretty=format:"$gitLogFormat" "$masterBranch".."$branch")
+			processDetailedData "$commits" "commit(s) ahead of $masterBranch"
+		fi
+	fi
+
+	cd "$projectPath"
+}
+
+for gitSearchPath in "${gitSearchPaths[@]}"; do
+	if [ "$gitSearchPath" == *.git ]; then
+		processGitRepository "$gitSearchPath"
+	else
+		findGitRepositories "$gitSearchPath"
+		for gitRepository in "${gitRepositories[@]}"; do
+			processGitRepository "$gitRepository"
+		done
+	fi
+done

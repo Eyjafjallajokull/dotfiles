@@ -49,9 +49,7 @@ if [ -f /etc/bash_completion ] && ! shopt -oq posix; then
     . /etc/bash_completion
 fi
 
-PATH=$PATH:~/bin/
-
-#export PATH=/home/pawel/bin:/usr/lib/lightdm/lightdm:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/java/jre1.6.0_31/bin
+export PATH=$PATH:$HOME/bin/
 export EDITOR=nano
 
 alias go="gnome-open"

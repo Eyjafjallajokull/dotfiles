@@ -30,3 +30,5 @@ zstyle ':completion:*' cache-path ~/.zsh/cache
 zstyle -e ':completion:*:default' list-colors 'reply=("${PREFIX:+=(#bi)($PREFIX:t)*==36=36}:${(s.:.)LS_COLORS}")';
 unsetopt correct_all
 setopt GLOB_COMPLETE
+
+export PATH=$PATH:$HOME/bin
