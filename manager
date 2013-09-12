@@ -43,6 +43,7 @@ def createLinks(sourceRoot, target):
 	#for item in os.listdir(sourceRoot):
 		# sourceFile = sourceRoot+s+item
 		# targetFile = target+s+item
+	changed = False
 	for root, dirs, files in os.walk(sourceRoot, topdown=False):
 		for item in files:
 			sourceFile = root+s+item
@@ -51,7 +52,7 @@ def createLinks(sourceRoot, target):
 				continue
 			if args['command'] == 'install':
 				if path.islink(targetFile):
-					if (os.readlink(targetFile) != sourceFile):				
+					if os.readlink(targetFile) != sourceFile:
 						removeFile(targetFile, 'Link exists but is invalid ')
 					else:
 						if 'v' in args['options']:
@@ -63,8 +64,11 @@ def createLinks(sourceRoot, target):
 					if not path.isdir(targetDir):
 						run('mkdir -p '+targetDir)
 					run('ln -s '+sourceFile+' '+targetFile)
+					changed = True
 			if args['command'] == 'uninstall':
-				run('rm '+targetFile)
+				if path.islink(targetFile) and os.readlink(targetFile) == sourceFile:		
+					run('rm '+targetFile)
+	return changed
 
 def removeFile(filename, message):
 	if path.exists(filename) and 'force' in args['options']:
@@ -99,6 +103,6 @@ for package in packages:
 		if executeInstallScript(package, 'pre-install') == False:
 			print 'pre-install script failed'
 			exit(1)
-	createLinks(source+s+package, target)
-	if args['command'] == 'install':
+	changed = createLinks(source+s+package, target)
+	if changed and args['command'] == 'install':
 		executeInstallScript(package, 'post-install')
