@@ -78,14 +78,16 @@ function processGitRepository {
 	displayPath="`pwd`/"
 	if [ "$shortOutput" -eq 1 ]; then
 		displayPath="`basename $displayPath`"
-		echo -en "$displayPath";
+#		echo -en "$displayPath";
+		printf "%-25s" "$displayPath"
 	else
 		displayPath="`echo ${displayPath/$projectPath//} | sed \"s/\/\([^\/]*\)\/$/\/\x1b[${colorPath2}m\1/\"`"
 		echo -e "\x1b[${colorPath}m.$displayPath\x1b[0m";
 	fi
 
 	branch="`git rev-parse --abbrev-ref HEAD`"
-	echo "`git branch -r`" | egrep "/$branch$">/dev/null && branchIsTracked=1 || branchIsTracked=0
+	[ "$branch" == "HEAD" ] && branch="`git rev-parse --short HEAD`" && head=1 || head=0
+	[ "`git for-each-ref --format='%(upstream:short)' $(git symbolic-ref -q HEAD) | head -1`" != "" ] && branchIsTracked=1 || branchIsTracked=0
 	echo "`git branch`" | grep " develop">/dev/null && masterBranch="develop" || masterBranch="master"
 
 	if [ ! -z "$command" ]; then
